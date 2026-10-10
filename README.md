@@ -3,6 +3,8 @@
 A small Chrome extension that copies the current page's HTML to your clipboard.
 Open ClipMD, click **Copy HTML**, and paste wherever you need it.
 
+![ClipMD popup showing the current page and Copy HTML button](docs/clipmd.png)
+
 ## Install locally
 
 1. Open `chrome://extensions` in Chrome.
