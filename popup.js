@@ -31,13 +31,13 @@ function formatSize(html) {
 async function initialize() {
   try {
     [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!activeTab?.id) throw new Error("No active tab");
+    if (activeTab?.id == null) throw new Error("No active tab");
 
     const pageTitle = document.getElementById("page-title");
     const pageDomain = document.getElementById("page-domain");
-    pageTitle.textContent = activeTab.title || "Untitled page";
-    pageTitle.title = pageTitle.textContent;
     const supported = isSupportedPage(activeTab.url);
+    pageTitle.textContent = activeTab.title || (supported ? new URL(activeTab.url).hostname : "Protected page");
+    pageTitle.title = pageTitle.textContent;
     pageDomain.textContent = supported ? new URL(activeTab.url).hostname : "Chrome-protected page";
     pageDomain.title = pageDomain.textContent;
 
