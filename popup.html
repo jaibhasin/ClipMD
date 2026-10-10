@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClipMD</title>
+    <link rel="stylesheet" href="popup.css">
+    <script src="popup.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <img class="brand-icon" src="icons/icon.svg" width="42" height="42" alt="">
+        <div>
+          <h1>ClipMD</h1>
+          <p class="tagline">Copy the page you're on.</p>
+        </div>
+      </header>
+
+      <section class="page-card" aria-label="Current page">
+        <p class="eyebrow">Current page</p>
+        <div class="page-details">
+          <svg class="page-icon" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <rect width="36" height="36" rx="10" fill="#edf2eb"/>
+            <path d="M12 9h8l5 5v13H12V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M20 9v6h5M15 19h7M15 23h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="page-text">
+            <h2 id="page-title">Finding your page…</h2>
+            <p id="page-domain">Just a moment</p>
+          </div>
+        </div>
+      </section>
+
+      <button id="copy-button" class="copy-button" type="button" disabled>
+        <svg id="copy-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+        <svg id="success-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" hidden>
+          <path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="button-label">Copy HTML</span>
+        <span id="spinner" class="spinner" aria-hidden="true" hidden></span>
+      </button>
+
+      <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true">
+        <p id="status-title">The whole page, ready to paste.</p>
+        <p id="status-detail">Copies the page's current HTML.</p>
+      </div>
+
+      <footer>
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="4" y="7" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span>Processed on your device</span>
+      </footer>
+    </main>
+  </body>
+</html>
