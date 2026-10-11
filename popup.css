@@ -1,0 +1,125 @@
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #263f53;
+  background: #edf6fc;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  position: relative;
+  isolation: isolate;
+  width: 360px;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 100% 100%, #ffe1d780, transparent 65%),
+    radial-gradient(ellipse at 0% 0%, #ffffffb3, transparent 70%),
+    linear-gradient(155deg, #e0f0fc, #edf6fc 48%, #e4eefb);
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: url("icons/waves.svg") center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+main { padding: 24px; }
+
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+
+.brand-icon { flex: none; border-radius: 11px; box-shadow: 0 4px 12px #47779414; }
+
+h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.7px; line-height: 1.25; }
+
+.tagline { margin: 4px 0 0; color: #576f84; font-size: 12px; line-height: 1.4; }
+
+.page-card {
+  padding: 16px;
+  background: #ffffff80;
+  border: 1px solid #ffffffd9;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px #5686a30a, inset 0 1px 0 #ffffffb3;
+  backdrop-filter: blur(12px);
+}
+
+.eyebrow { margin: 0 0 12px; color: #576f84; font-size: 10px; font-weight: 650; letter-spacing: 1px; text-transform: uppercase; }
+
+.page-details { display: flex; align-items: center; gap: 12px; }
+
+.page-icon { flex: none; color: #557f9b; }
+.page-icon rect { fill: #d5e8f380; }
+
+.page-text { min-width: 0; }
+
+h2 {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+#page-domain { margin: 3px 0 0; color: #576f84; font-size: 11px; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid #ffffffbf;
+  border-radius: 13px;
+  background: linear-gradient(130deg, #d5ecfcbf, #bddff2d9);
+  color: #244f69;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 5px 14px #42799c12, inset 0 1px 0 #ffffffb3;
+  backdrop-filter: blur(12px);
+  transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.copy-button:hover:not(:disabled) { background: linear-gradient(130deg, #d5ecfc, #b8dcf0); box-shadow: 0 6px 16px #42799c1f, inset 0 1px 0 #ffffffcc; }
+.copy-button:active:not(:disabled) { transform: translateY(1px); }
+.copy-button:focus-visible { outline: 3px solid #628ca8; outline-offset: 3px; }
+.copy-button:disabled { cursor: default; background: #e2edf680; color: #62768a; box-shadow: none; }
+.copy-button[aria-busy="true"] { background: #cce5f4bf; color: #244f69; cursor: progress; }
+.copy-button[data-state="copied"] { background: #d8ebf2b3; border-color: #ffffffbf; color: #23576a; }
+.copy-button[data-state="copied"]:hover { background: #d1e6ef; }
+
+[hidden] { display: none !important; }
+
+.spinner { width: 17px; height: 17px; border: 2px solid #244f6930; border-top-color: currentColor; border-radius: 50%; animation: spin 700ms linear infinite; }
+
+.status { min-height: 59px; padding-top: 15px; text-align: center; }
+
+#status-title { margin: 0; color: #425e75; font-size: 12px; font-weight: 500; line-height: 1.5; }
+
+#status-detail { margin: 3px 0 0; color: #576f84; font-size: 11px; line-height: 1.5; }
+
+.status[data-state="error"] #status-title { color: #9b3c45; }
+.status[data-state="copied"] #status-title { color: #23576a; }
+
+footer { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #ffffffa6; color: #576f84; font-size: 10px; line-height: 1.5; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-button { transition: none; }
+  .spinner { animation-duration: 1.5s; }
+}
