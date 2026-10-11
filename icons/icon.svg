@@ -1,5 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="32" fill="#c5e3f4"/>
-  <path d="m48 43-22 21 22 21m32-42 22 21-22 21" fill="none" stroke="#2f607d" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="m71 36-14 56" stroke="#8396b1" stroke-width="8" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#a9daf7"/>
+      <stop offset="1" stop-color="#d5edfb"/>
+    </linearGradient>
+    <clipPath id="tile"><rect x="4" y="4" width="120" height="120" rx="30"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect x="4" y="4" width="120" height="120" fill="url(#sky)"/>
+    <path d="M4 102C14 87 32 86 44 98C51 78 77 77 88 94C104 83 119 89 124 101V124H4Z" fill="#ffffff" fill-opacity=".65"/>
+    <path d="M4 115C16 101 34 100 47 110C60 96 79 99 87 111C100 101 114 104 124 115V124H4Z" fill="#f7fcff"/>
+  </g>
+  <path d="m47 38-16 16 16 16m34-32 16 16-16 16m-11-38-12 44" fill="none" stroke="#2f607d" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
