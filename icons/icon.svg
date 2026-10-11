@@ -1,9 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
     <clipPath id="tile"><rect x="4" y="4" width="120" height="120" rx="30"/></clipPath>
+    <radialGradient id="edge-fog" cx=".5" cy=".5" r=".65">
+      <stop offset=".4" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".3"/>
+    </radialGradient>
+    <linearGradient id="cloud-fog" x2="0" y2="1">
+      <stop offset=".55" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".3"/>
+    </linearGradient>
   </defs>
   <g clip-path="url(#tile)">
-    <rect x="4" y="4" width="120" height="120" fill="#527fb5"/>
-    <path d="M4 80C14 75 24 73 34 77C44 72 54 72 64 77C74 73 84 73 94 77C104 73 114 75 124 80V124H4Z" fill="#ffffff"/>
+    <rect x="4" y="4" width="120" height="120" fill="#55b9f3"/>
+    <rect x="4" y="4" width="120" height="80" fill="url(#edge-fog)"/>
+    <rect x="4" y="4" width="120" height="80" fill="url(#cloud-fog)"/>
+    <path d="M4 80C10 76 17 75 24 78C28 73 38 72 45 76C53 71 65 71 73 76C80 73 88 74 94 78C104 73 115 74 124 80V124H4Z" fill="#ffffff" transform="translate(0 12.4) scale(1 .9)"/>
   </g>
 </svg>
