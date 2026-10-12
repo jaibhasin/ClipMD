@@ -4,6 +4,7 @@
   "version": "0.2.0",
   "description": "Copy the current page as Markdown, converted locally with Firecrawl.",
   "permissions": ["activeTab", "scripting", "clipboardWrite"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {
     "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'none';"
   },

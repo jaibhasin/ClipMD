@@ -117,13 +117,35 @@ const fixture = `<!doctype html><html><head><title>Course fixture</title>
 <script>document.querySelector('#task').checked = true; document.querySelector('main').insertAdjacentHTML('beforeend', '<p>Live content ✓</p>');</script>
 </body></html>`;
 
+const lesson = `<!doctype html><html><head><title>Sandboxes and LocalShell</title>
+<base href="/lessons/unit/"><style>.inactive { display: none; }</style></head><body>
+<h1>Sandboxes and LocalShell</h1><p>A sandbox is a temporary, isolated workspace.</p>
+<p><strong>Sandbox as a Tool:</strong> The agent runs outside and calls the sandbox via <code>execute</code>.</p>
+<h2>Managing credentials in a sandbox</h2><p><a href="../reference">Lesson reference</a></p>
+<div id="python"><pre><code class="language-python">print("Python lesson")</code></pre></div>
+<div id="typescript" class="inactive"><pre><code class="language-typescript">console.log("TypeScript lesson");</code></pre></div>
+<img hidden src="/tracking.svg" alt="Tracking pixel"><script>document.body.insertAdjacentHTML('beforeend', '<p>Live lesson content ✓</p>');</script>
+</body></html>`;
+
+function courseShell(src) {
+  return `<!doctype html><html><head><title>Academy course</title></head><body>
+  <aside style="width:20vw;float:left"><h1>Course menu</h1><ul><li>Lesson 1</li><li>Lesson 2</li></ul></aside>
+  <iframe title="Lesson" style="width:75vw;height:85vh;border:0" src="${src}"></iframe>
+  <iframe hidden src="http://ungranted.invalid/tracker"></iframe></body></html>`;
+}
+
 const server = createServer((request, response) => {
   if (request.url.endsWith(".svg")) {
     response.setHeader("Content-Type", "image/svg+xml");
     response.end('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>');
   } else {
     response.setHeader("Content-Type", "text/html; charset=utf-8");
-    response.end(request.url === "/empty" ? "<!doctype html><html><head><title>Empty</title></head><body></body></html>" : fixture);
+    if (request.url === "/empty") response.end("<!doctype html><html><head><title>Empty</title></head><body></body></html>");
+    else if (request.url === "/lesson") response.end(lesson);
+    else if (request.url === "/course-frame") response.end(courseShell("/lesson"));
+    else if (request.url === "/external-frame") response.end(courseShell(`http://localhost:${server.address().port}/lesson`));
+    else if (request.url === "/external-empty") response.end(courseShell(`http://localhost:${server.address().port}/empty`));
+    else response.end(fixture);
   }
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -173,10 +195,89 @@ try {
     "```js\nconst x = 1;\nrun(x);\n```", `![Chart](${origin}/course/unit/images/chart.svg)`,
     "~~Old~~ `a ** b`", "Live content ✓", "Course navigation", "Updated after first copy",
   ]) assert.ok(markdown.includes(expected), `Missing Markdown content: ${expected}\n${markdown}`);
-  assert.ok(!markdown.includes("99") && !markdown.includes("insertAdjacentHTML") && !markdown.includes("color: #123"));
+  assert.ok(!/^99$/m.test(markdown) && !markdown.includes("insertAdjacentHTML") && !markdown.includes("color: #123"));
   assert.equal(await page.evaluate(() => document.documentElement.outerHTML), updated, "Repeated capture must not mutate the live page");
   writeFileSync(join(root, "test-results", "copied.md"), markdown);
   console.log(`PASS: real action → live DOM → WASM → clipboard; cold click ${coldMs.toFixed(0)} ms, warm click ${warmMs.toFixed(0)} ms (includes test polling)`);
+
+  await page.goto(`${origin}/course-frame`);
+  const lessonFrame = page.frames().find(frame => frame.url().endsWith("/lesson"));
+  assert.ok(lessonFrame);
+  const lessonBefore = await lessonFrame.evaluate(() => document.documentElement.outerHTML);
+  popup = await openPopup(cdp, id, page);
+  await popup.waitFor("!document.getElementById('copy-button').disabled");
+  await popup.click();
+  await popup.waitFor("document.getElementById('copy-button').dataset.state === 'copied'");
+  await popup.close();
+  await page.bringToFront();
+  const lessonMarkdown = await page.evaluate(() => navigator.clipboard.readText());
+  for (const text of ["# Sandboxes and LocalShell", "A sandbox is a temporary", "Managing credentials", "Live lesson content ✓", 'print("Python lesson")', `[Lesson reference](${origin}/lessons/reference)`]) {
+    assert.ok(lessonMarkdown.includes(text), `Missing embedded lesson content: ${text}\n${lessonMarkdown}`);
+  }
+  for (const text of ["Course menu", "TypeScript lesson", "Tracking pixel"]) assert.ok(!lessonMarkdown.includes(text));
+  assert.equal(await lessonFrame.evaluate(() => document.documentElement.outerHTML), lessonBefore);
+  console.log("PASS: dominant same-origin lesson is copied without menu, inactive tab, or hidden pixels");
+
+  await page.goto(`${origin}/external-frame`);
+  await page.evaluate(() => navigator.clipboard.writeText("Keep existing clipboard"));
+  popup = await openPopup(cdp, id, page);
+  await popup.waitFor("!document.getElementById('copy-button').disabled");
+  await popup.click();
+  await popup.waitFor("document.getElementById('button-label').textContent === 'Allow lesson access'");
+  await popup.screenshot("popup-embedded-access.png");
+  assert.equal(await popup.evaluate("navigator.clipboard.readText()"), "Keep existing clipboard");
+  // Exercise denial while keeping the normal request method for the actual grant.
+  await popup.evaluate("window.originalRequest = chrome.permissions.request; chrome.permissions.request = async () => false");
+  await popup.click();
+  await popup.waitFor("document.getElementById('status-detail').textContent.includes(\"wasn't granted\")");
+  assert.equal(await popup.evaluate("navigator.clipboard.readText()"), "Keep existing clipboard");
+  await popup.evaluate("chrome.permissions.request = window.originalRequest");
+  await popup.close();
+  // Grant through a durable extension page: Chrome's native permission prompt
+  // dismisses the toolbar popup, and its dialog is outside the popup's CDP target.
+  const permissionPage = await context.newPage();
+  await permissionPage.goto(`chrome-extension://${id}/popup.html`);
+  assert.equal(await permissionPage.evaluate(() => chrome.permissions.request({ origins: ["http://localhost/*"] })), true);
+  await permissionPage.close();
+  popup = await openPopup(cdp, id, page);
+  await popup.waitFor("!document.getElementById('copy-button').disabled");
+  await popup.click();
+  await popup.waitFor("document.getElementById('copy-button').dataset.state === 'copied'");
+  assert.equal(await popup.evaluate("chrome.permissions.contains({origins:['http://localhost/*']})"), true);
+  await popup.screenshot("popup-embedded-copied.png");
+  assert.equal(await popup.evaluate("document.documentElement.scrollWidth > document.body.clientWidth"), false);
+  await popup.close();
+  await page.bringToFront();
+  const externalMarkdown = await page.evaluate(() => navigator.clipboard.readText());
+  assert.ok(externalMarkdown.includes("A sandbox is a temporary"));
+  assert.ok(externalMarkdown.includes(`http://localhost:${server.address().port}/lessons/reference`));
+  assert.ok(!externalMarkdown.includes("Course menu"));
+  writeFileSync(join(root, "test-results", "embedded-lesson.md"), externalMarkdown);
+  const externalLesson = page.frames().find(frame => frame.url().endsWith("/lesson"));
+  await externalLesson.evaluate(() => {
+    document.getElementById("python").classList.add("inactive");
+    document.getElementById("typescript").classList.remove("inactive");
+  });
+  popup = await openPopup(cdp, id, page);
+  await popup.waitFor("!document.getElementById('copy-button').disabled");
+  await popup.click();
+  await popup.waitFor("document.getElementById('copy-button').dataset.state === 'copied'");
+  await popup.close();
+  await page.bringToFront();
+  const switched = await page.evaluate(() => navigator.clipboard.readText());
+  assert.ok(switched.includes("TypeScript lesson") && !switched.includes("Python lesson"));
+  console.log("PASS: cross-origin lesson access, denial preserves clipboard, grant copies live content, and selected tab is respected");
+
+  await page.goto(`${origin}/external-empty`);
+  await page.evaluate(() => navigator.clipboard.writeText("Keep existing clipboard"));
+  popup = await openPopup(cdp, id, page);
+  await popup.waitFor("!document.getElementById('copy-button').disabled");
+  await popup.click();
+  await popup.waitFor("document.getElementById('status-detail').textContent.includes('no text to convert')");
+  await popup.close();
+  await page.bringToFront();
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "Keep existing clipboard");
+  console.log("PASS: empty embedded lesson never silently copies the menu");
 
   await page.goto(`${origin}/empty`);
   await page.evaluate(() => navigator.clipboard.writeText("Keep existing clipboard"));
