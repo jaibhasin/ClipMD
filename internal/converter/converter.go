@@ -4,6 +4,7 @@ package converter
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -31,5 +32,13 @@ func Convert(html, baseURL string) (string, error) {
 	})
 	converter.Use(plugin.GitHubFlavored())
 	converter.Use(plugin.RobustCodeBlock())
+	// Keep the robust PRE handler, but use upstream CommonMark's inline-code
+	// rule for safe backtick fences and spacing between neighboring elements.
+	for _, rule := range converter.InitializeCommonMarkRules() {
+		if slices.Contains(rule.Filter, "code") {
+			converter.AddRules(rule)
+			break
+		}
+	}
 	return converter.ConvertString(html)
 }

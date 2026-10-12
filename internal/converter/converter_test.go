@@ -14,6 +14,8 @@ func TestConversion(t *testing.T) {
 		{"checkbox", `<ul><li><input type="checkbox" checked>Done</li><li><input type="checkbox">Next</li></ul>`, "- [x] Done\n- [ ] Next"},
 		{"highlighted code", `<pre><code class="language-js"><div>const x = 1;</div><div class="line-numbers">1</div><div>run(x);</div></code></pre>`, "```js\nconst x = 1;\nrun(x);\n```"},
 		{"escaping", `<p>Literal **stars**</p>`, `Literal \*\*stars\*\*`},
+		{"inline spacing", `<p><del>Old</del> <code>a ** b</code></p>`, "~~Old~~ `a ** b`"},
+		{"inline backticks", "<p><code>a ```` b</code></p>", "`````a ```` b`````"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

@@ -4,15 +4,15 @@
   "modules": [
     {
       "name": "golang.org/x/net",
-      "version": "v0.25.0"
+      "version": "v0.55.0"
     },
     {
       "name": "github.com/andybalholm/cascadia",
-      "version": "v1.3.2"
+      "version": "v1.3.3"
     },
     {
       "name": "github.com/PuerkitoBio/goquery",
-      "version": "v1.9.2"
+      "version": "v1.10.3"
     },
     {
       "name": "github.com/firecrawl/html-to-markdown",
