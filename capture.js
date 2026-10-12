@@ -72,6 +72,60 @@ export function capturePage() {
       if (node.tagName === "IMG" && originals[index].naturalWidth === 1 && originals[index].naturalHeight === 1) node.remove();
     });
     root.querySelectorAll("head, script, style, noscript, template").forEach(node => node.remove());
+    // X uses DIVs even for inline mentions. Feed extraction belongs before
+    // conversion: the converter cannot distinguish posts from app chrome.
+    if (["x.com", "www.x.com", "twitter.com", "www.twitter.com"].includes(new URL(doc.URL).hostname)) {
+      const posts = root.querySelectorAll('article[data-testid="tweet"]');
+      if (posts.length) {
+        const feed = doc.createElement("main");
+        const title = doc.createElement("h1");
+        title.textContent = "X posts (currently loaded)";
+        feed.append(title);
+
+        function field(source, tag, spaced = false) {
+          const copy = doc.createElement(tag);
+          copy.append(...source.cloneNode(true).childNodes);
+          copy.querySelectorAll("svg, button").forEach(node => node.remove());
+          copy.querySelectorAll("div").forEach(node => {
+            const inline = doc.createElement("span");
+            inline.append(...node.childNodes);
+            if (spaced) inline.append(" ");
+            node.replaceWith(inline);
+          });
+          return copy;
+        }
+
+        for (const post of posts) {
+          const article = doc.createElement("article");
+          const quotes = new Map();
+          const selector = '[data-testid="User-Name"], [data-testid="tweetText"], [data-testid="tweetPhoto"], [data-testid="card.wrapper"], [data-testid="tweet-text-show-more-link"]';
+          for (const source of post.querySelectorAll(selector)) {
+            // A card/media wrapper can contain other selected fields.
+            if (source.parentElement.closest(selector)) continue;
+            const quote = source.closest('[data-testid="quoteTweet"], [role="link"]');
+            let target = article;
+            if (quote && quote !== post && post.contains(quote) && quote.querySelector('[data-testid="tweetText"]')) {
+              if (!quotes.has(quote)) {
+                const block = doc.createElement("blockquote");
+                article.append(block);
+                quotes.set(quote, block);
+              }
+              target = quotes.get(quote);
+            }
+            const kind = source.getAttribute("data-testid");
+            if (kind === "User-Name") target.append(field(source, target === article ? "h2" : "p", true));
+            else if (kind === "tweetText") target.append(field(source, "p"));
+            else if (kind === "tweet-text-show-more-link") {
+              const note = doc.createElement("p");
+              note.textContent = "[Post is truncated. Open the post to read the full text.]";
+              target.append(note);
+            } else target.append(source.cloneNode(true));
+          }
+          if (article.textContent.trim() || article.querySelector("img")) feed.append(article);
+        }
+        return { html: feed.outerHTML, baseURL: doc.baseURI, sourcePath };
+      }
+    }
     return { html: root.outerHTML, baseURL: doc.baseURI, sourcePath, embedded };
   }
 
