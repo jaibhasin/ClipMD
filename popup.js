@@ -11,6 +11,7 @@ const converter = new MarkdownConverter();
 window.addEventListener("pagehide", () => converter.dispose());
 
 function showStatus(state, title, detail) {
+  status.hidden = false;
   status.dataset.state = state;
   statusTitle.textContent = title;
   statusDetail.textContent = detail;
