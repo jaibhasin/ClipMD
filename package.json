@@ -1,0 +1,15 @@
+{
+  "name": "clipmd",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test:go": "node scripts/go.mjs test ./...",
+    "test:browser": "node tests/browser.mjs",
+    "test": "npm run test:go && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

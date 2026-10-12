@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "ClipMD",
-  "version": "0.1.0",
-  "description": "Copy the current page's HTML to your clipboard.",
+  "version": "0.2.0",
+  "description": "Copy the current page as Markdown, converted locally with Firecrawl.",
   "permissions": ["activeTab", "scripting", "clipboardWrite"],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'none';"
+  },
   "action": {
-    "default_title": "ClipMD - Copy page HTML",
+    "default_title": "ClipMD - Copy page Markdown",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
