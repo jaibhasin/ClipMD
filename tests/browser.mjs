@@ -152,10 +152,11 @@ await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 mkdirSync(join(root, "test-results"), { recursive: true });
 let browser;
+let context;
 let brokenExtension;
 
 try {
-  const context = await chromium.launchPersistentContext("", {
+  context = await chromium.launchPersistentContext("", {
     channel: "chrome", headless: false,
     permissions: ["clipboard-read", "clipboard-write"],
     ignoreDefaultArgs: ["--disable-extensions"],
@@ -323,7 +324,7 @@ try {
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "Keep existing clipboard");
   console.log("PASS: missing WASM module reports a load error, permits retry, and preserves the clipboard");
 } finally {
-  await browser?.close();
+  await context?.close();
   await new Promise(resolve => server.close(resolve));
   if (brokenExtension) rmSync(brokenExtension, { recursive: true, force: true });
 }
