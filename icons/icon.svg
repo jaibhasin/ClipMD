@@ -3,11 +3,11 @@
     <clipPath id="tile"><rect x="4" y="4" width="120" height="120" rx="30"/></clipPath>
     <radialGradient id="edge-fog" cx=".5" cy=".5" r=".65">
       <stop offset=".4" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".15"/>
     </radialGradient>
     <linearGradient id="cloud-fog" x2="0" y2="1">
       <stop offset=".55" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".15"/>
     </linearGradient>
   </defs>
   <g clip-path="url(#tile)">
