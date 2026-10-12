@@ -14,6 +14,6 @@
     <rect x="4" y="4" width="120" height="120" fill="#55b9f3"/>
     <rect x="4" y="4" width="120" height="80" fill="url(#edge-fog)"/>
     <rect x="4" y="4" width="120" height="80" fill="url(#cloud-fog)"/>
-    <path d="M4 80C10 76 17 75 24 78C28 73 38 72 45 76C53 71 65 71 73 76C80 73 88 74 94 78C104 73 115 74 124 80V124H4Z" fill="#ffffff" transform="translate(0 12.4) scale(1 .9)"/>
+    <path d="M4 80C10 76 17 75 24 78C28 73 38 72 45 76C53 71 65 71 73 76C80 73 88 74 94 78C104 73 115 74 124 80V124H4Z" fill="#eaf6fc" transform="translate(0 12.4) scale(1 .9)"/>
   </g>
 </svg>
