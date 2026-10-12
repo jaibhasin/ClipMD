@@ -95,6 +95,13 @@ The test writes sample Markdown and popup screenshots into `test-results/` and r
 Native popup automation uses experimental Chrome DevTools Protocol extension commands and was verified in Chrome 154.
 Conversion correctness and worker lifecycle are also covered by `npm test`.
 
+## Continuous integration
+
+GitHub Actions runs on pushes and pull requests.
+It checks JavaScript syntax, Go formatting and vet results, conversion tests, worker lifecycle tests, and the checked-in WASM asset hashes.
+It then rebuilds the converter, checks the rebuilt assets, and runs the native Chrome popup tests on Linux under Xvfb.
+Browser screenshots and sample Markdown are available in the `browser-evidence` workflow artifact.
+
 ## Third-party licenses
 
 Firecrawl's standalone HTML-to-Markdown library is MIT-licensed.

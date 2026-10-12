@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build, tests, and Chrome copy flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GOCACHE: ${{ github.workspace }}/.cache/go-build
+      GOMODCACHE: ${{ github.workspace }}/.cache/go-mod
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+      - run: npm ci
+      - name: Check JavaScript syntax and Go formatting
+        run: |
+          for file in *.js scripts/*.mjs tests/*.mjs; do
+            node --check "$file"
+          done
+          test -z "$(gofmt -l cmd internal)"
+      - name: Check Go code
+        run: node scripts/go.mjs vet ./...
+      - name: Test sources and checked-in WASM assets
+        run: npm test
+      - name: Rebuild the packaged converter
+        run: npm run build
+      - name: Test rebuilt assets
+        run: node --test tests/packaged-assets.test.mjs
+      - name: Install desktop Chrome and browser dependencies
+        run: npx playwright install --with-deps chrome
+      - name: Verify the native Chrome popup and clipboard
+        run: xvfb-run --auto-servernum npm run test:browser
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-evidence
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
