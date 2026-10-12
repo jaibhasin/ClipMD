@@ -7,11 +7,11 @@ const status = document.getElementById("status");
 const statusTitle = document.getElementById("status-title");
 const statusDetail = document.getElementById("status-detail");
 let activeTab;
+let pendingOrigins;
 const converter = new MarkdownConverter();
 window.addEventListener("pagehide", () => converter.dispose());
 
 function showStatus(state, title, detail) {
-  status.hidden = false;
   status.dataset.state = state;
   statusTitle.textContent = title;
   statusDetail.textContent = detail;
@@ -71,12 +71,14 @@ copyButton.addEventListener("click", async () => {
   showStatus("copying", "Turning your page into Markdown…", "Keep this popup open for a moment.");
 
   try {
-    const [capture] = await chrome.scripting.executeScript({
-      target: { tabId: activeTab.id },
-      func: capturePage,
-    });
-    const captured = capture?.result;
-    if (typeof captured?.html !== "string" || !captured.html) throw new Error("Empty capture");
+    // Request from the button gesture, after explaining the embedded site's access.
+    if (pendingOrigins) {
+      if (!await chrome.permissions.request({ origins: pendingOrigins })) {
+        throw new CaptureError("Access wasn't granted. Allow the embedded site or open the lesson in its own tab.");
+      }
+      pendingOrigins = undefined;
+    }
+    const captured = await captureTab(activeTab.id);
     const markdown = await converter.convert(captured.html, captured.baseURL);
     buttonLabel.textContent = "Copying…";
     await navigator.clipboard.writeText(markdown);
@@ -89,7 +91,14 @@ copyButton.addEventListener("click", async () => {
     buttonLabel.textContent = "Try again";
     copyIcon.hidden = false;
 
-    if (error instanceof ConversionError) {
+    if (error instanceof EmbeddedAccessError) {
+      pendingOrigins = error.origins;
+      buttonLabel.textContent = "Allow lesson access";
+      showStatus("error", "The lesson is on another site.", `${error.message} If Chrome closes this popup, reopen ClipMD to copy.`);
+    } else if (error instanceof CaptureError) {
+      if (pendingOrigins) buttonLabel.textContent = "Allow lesson access";
+      showStatus("error", "Couldn't read the embedded content.", error.message);
+    } else if (error instanceof ConversionError) {
       showStatus("error", "Couldn't convert this page.", error.message);
     } else if (error.name === "NotAllowedError") {
       showStatus("error", "Clipboard access was blocked.", "Keep this popup open and try again.");
@@ -106,5 +115,5 @@ copyButton.addEventListener("click", async () => {
 });
 
 initialize();
-import { capturePage } from "./capture.js";
+import { captureTab, CaptureError, EmbeddedAccessError } from "./capture.js";
 import { MarkdownConverter, ConversionError } from "./markdown-converter.js";
