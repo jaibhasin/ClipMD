@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -154,6 +154,7 @@ mkdirSync(join(root, "test-results"), { recursive: true });
 let browser;
 let context;
 let brokenExtension;
+let grantedExtension;
 
 try {
   context = await chromium.launchPersistentContext("", {
@@ -165,7 +166,7 @@ try {
   browser = context.browser();
   console.log(`Testing native extension popup in Chrome ${browser.version()}`);
   const cdp = await browser.newBrowserCDPSession();
-  const { id } = await cdp.send("Extensions.loadUnpacked", { path: root });
+  let { id } = await cdp.send("Extensions.loadUnpacked", { path: root });
   const page = await context.newPage();
   await page.goto(`${origin}/course/unit/page`);
   const before = await page.evaluate(() => document.documentElement.outerHTML);
@@ -234,12 +235,17 @@ try {
   assert.equal(await popup.evaluate("navigator.clipboard.readText()"), "Keep existing clipboard");
   await popup.evaluate("chrome.permissions.request = window.originalRequest");
   await popup.close();
-  // Grant through a durable extension page: Chrome's native permission prompt
-  // dismisses the toolbar popup, and its dialog is outside the popup's CDP target.
-  const permissionPage = await context.newPage();
-  await permissionPage.goto(`chrome-extension://${id}/popup.html`);
-  assert.equal(await permissionPage.evaluate(() => chrome.permissions.request({ origins: ["http://localhost/*"] })), true);
-  await permissionPage.close();
+  // Use a test-only build with localhost access declared at install time.
+  // Chrome's native optional-host permission prompt is outside the page CDP target.
+  grantedExtension = mkdtempSync(join(tmpdir(), "clipmd-granted-host-"));
+  for (const file of ["manifest.json", "popup.html", "popup.css", "popup.js", "capture.js", "markdown-converter.js", "converter-worker.js", "icons", "wasm"]) {
+    cpSync(join(root, file), join(grantedExtension, file), { recursive: true });
+  }
+  const manifest = JSON.parse(readFileSync(join(grantedExtension, "manifest.json"), "utf8"));
+  delete manifest.optional_host_permissions;
+  manifest.host_permissions = ["http://localhost/*"];
+  writeFileSync(join(grantedExtension, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  ({ id } = await cdp.send("Extensions.loadUnpacked", { path: grantedExtension }));
   popup = await openPopup(cdp, id, page);
   await popup.waitFor("!document.getElementById('copy-button').disabled");
   await popup.click();
@@ -327,4 +333,5 @@ try {
   await context?.close();
   await new Promise(resolve => server.close(resolve));
   if (brokenExtension) rmSync(brokenExtension, { recursive: true, force: true });
+  if (grantedExtension) rmSync(grantedExtension, { recursive: true, force: true });
 }
