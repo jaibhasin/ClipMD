@@ -41,7 +41,7 @@ h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.7px; line-
 .tagline { margin: 4px 0 0; color: #576f84; font-size: 12px; line-height: 1.4; }
 
 .page-card {
-  padding: 14px;
+  padding: 10px 12px;
   background: #ffffff80;
   border: 1px solid #ffffffd9;
   border-radius: 16px;
@@ -49,9 +49,7 @@ h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.7px; line-
   backdrop-filter: blur(12px);
 }
 
-.eyebrow { margin: 0 0 10px; color: #576f84; font-size: 10px; font-weight: 650; letter-spacing: 1px; text-transform: uppercase; }
-
-.page-details { display: flex; align-items: center; gap: 12px; }
+.page-details { display: flex; align-items: center; gap: 10px; }
 
 .page-icon { flex: none; color: #557f9b; }
 .page-icon rect { fill: #d5e8f380; }
@@ -59,18 +57,16 @@ h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.7px; line-
 .page-text { min-width: 0; }
 
 h2 {
-  display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
-#page-domain { margin: 3px 0 0; color: #576f84; font-size: 11px; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#page-domain { margin: 2px 0 0; color: #576f84; font-size: 10px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .copy-button {
   display: flex;
