@@ -7,6 +7,8 @@ const status = document.getElementById("status");
 const statusTitle = document.getElementById("status-title");
 const statusDetail = document.getElementById("status-detail");
 let activeTab;
+const converter = new MarkdownConverter();
+window.addEventListener("pagehide", () => converter.dispose());
 
 function showStatus(state, title, detail) {
   status.dataset.state = state;
@@ -21,8 +23,8 @@ function isSupportedPage(url) {
     !(page.hostname === "chrome.google.com" && page.pathname.startsWith("/webstore"));
 }
 
-function formatSize(html) {
-  const bytes = new Blob([html]).size;
+function formatSize(text) {
+  const bytes = new Blob([text]).size;
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -43,7 +45,7 @@ async function initialize() {
 
     if (!supported) {
       buttonLabel.textContent = "Unavailable here";
-      showStatus("error", "Chrome protects this page.", "Open a regular website to copy its HTML.");
+      showStatus("error", "Chrome protects this page.", "Open a regular website to copy as Markdown.");
       return;
     }
 
@@ -61,35 +63,34 @@ copyButton.addEventListener("click", async () => {
   copyButton.disabled = true;
   copyButton.setAttribute("aria-busy", "true");
   copyButton.dataset.state = "copying";
-  buttonLabel.textContent = "Copying…";
+  buttonLabel.textContent = "Converting…";
   copyIcon.hidden = true;
   successIcon.hidden = true;
   spinner.hidden = false;
-  showStatus("copying", "Copying your page…", "Keep this popup open for a moment.");
+  showStatus("copying", "Turning your page into Markdown…", "Keep this popup open for a moment.");
 
   try {
     const [capture] = await chrome.scripting.executeScript({
       target: { tabId: activeTab.id },
-      func: () => {
-        const doctype = document.doctype
-          ? `${new XMLSerializer().serializeToString(document.doctype)}\n`
-          : "";
-        return doctype + document.documentElement.outerHTML;
-      },
+      func: capturePage,
     });
-    const html = capture?.result;
-    if (typeof html !== "string" || !html) throw new Error("Empty capture");
-    await navigator.clipboard.writeText(html);
+    const captured = capture?.result;
+    if (typeof captured?.html !== "string" || !captured.html) throw new Error("Empty capture");
+    const markdown = await converter.convert(captured.html, captured.baseURL);
+    buttonLabel.textContent = "Copying…";
+    await navigator.clipboard.writeText(markdown);
     copyButton.dataset.state = "copied";
     buttonLabel.textContent = "Copy again";
     successIcon.hidden = false;
-    showStatus("copied", "Copied to clipboard", `${formatSize(html)} of HTML · Ready to paste.`);
+    showStatus("copied", "Copied to clipboard", `${formatSize(markdown)} of Markdown · Ready to paste.`);
   } catch (error) {
     copyButton.dataset.state = "error";
     buttonLabel.textContent = "Try again";
     copyIcon.hidden = false;
 
-    if (error.name === "NotAllowedError") {
+    if (error instanceof ConversionError) {
+      showStatus("error", "Couldn't convert this page.", error.message);
+    } else if (error.name === "NotAllowedError") {
       showStatus("error", "Clipboard access was blocked.", "Keep this popup open and try again.");
     } else if (/cannot access|cannot be scripted|missing host permission/i.test(error.message)) {
       showStatus("error", "Chrome won't let us read this page.", "Try ClipMD on a regular website.");
@@ -104,3 +105,5 @@ copyButton.addEventListener("click", async () => {
 });
 
 initialize();
+import { capturePage } from "./capture.js";
+import { MarkdownConverter, ConversionError } from "./markdown-converter.js";
